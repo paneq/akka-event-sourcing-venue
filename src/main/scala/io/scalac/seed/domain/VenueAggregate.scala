@@ -24,11 +24,7 @@ object VenueAggregate {
   trait VenueState
   case object Uninitialized extends VenueState
   case object Removed extends VenueState
-  case class Venue(
-    id: String,
-    seatsTaken: scala.collection.immutable.Map[String, SeatState],
-    bookings: scala.collection.immutable.Map[String, String]
-  ) extends VenueState
+  case class Venue(id: String, seatsTaken: Map[String, SeatState]) extends VenueState
 
   trait VenueCommand
   case class Initialize(seats: List[String]) extends VenueCommand
@@ -54,26 +50,14 @@ class VenueAggregate(id: String) extends PersistentActor with ActorLogging {
           case SeatsAdded(seats) =>
             val seatsTaken = new scala.collection.mutable.HashMap[String, SeatState]
             seats.foreach(s => seatsTaken(s) = Free)
-            state = VenueAggregate.Venue(
-              id,
-              collection.immutable.HashMap(seatsTaken.toSeq: _*),
-              new scala.collection.immutable.HashMap[String, String]
-            )
+            state = VenueAggregate.Venue(id, collection.immutable.HashMap(seatsTaken.toSeq: _*))
         }
-      case Venue(_, seatsTaken, bookings) =>
+      case Venue(_, seatsTaken) =>
         event match{
           case SeatsBooked(bookingId, seats) =>
-            state = Venue(
-              id,
-              seatsTaken ++ seats.map(s => (s -> Taken(bookingId))),
-              bookings
-            )
+            state = Venue(id, seatsTaken ++ seats.map(s => (s -> Taken(bookingId))))
           case SeatsUnBooked(bookingId, seats) =>
-            state = Venue(
-              id,
-              seatsTaken ++ seats.map(s => (s -> Free)),
-              bookings
-            )
+            state = Venue(id, seatsTaken ++ seats.map(s => (s -> Free)))
         }
     }
   }
@@ -90,7 +74,7 @@ class VenueAggregate(id: String) extends PersistentActor with ActorLogging {
       }
     case Book(bookingId, seats) =>
       state match {
-        case Venue(_,seatsTaken,_) => {
+        case Venue(_,seatsTaken) => {
           if (seats.exists(s => !seatsTaken(s).isFree)) {
             sender ! Rejected
           } else {
@@ -103,7 +87,7 @@ class VenueAggregate(id: String) extends PersistentActor with ActorLogging {
       }
     case UnbookAll(bookingId) =>
       state match {
-        case Venue(_,seatsTaken,_) => {
+        case Venue(_,seatsTaken) => {
           val seats = seatsTaken.filter(kv => kv._2.takenBy(bookingId)).map(_._1).toList
           if (seats.isEmpty) {
             sender ! Rejected

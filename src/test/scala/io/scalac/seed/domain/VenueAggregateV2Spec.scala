@@ -21,11 +21,7 @@ class VenueAggregateV2Spec() extends TestKit(ActorSystem("MySpec")) with Implici
     val venue = system.actorOf(Props(new VenueAggregate(id)))
     val initializeCommand = VenueAggregate.Initialize(seats = List("A-1", "A-2"))
     venue ! initializeCommand
-    expectMsg(VenueAggregate.Venue(
-      id = id,
-      seatsTaken = Map("A-1"-> Free, "A-2" -> Free),
-      bookings = Map()
-    ))
+    expectMsg(VenueAggregate.Venue(id = id, seatsTaken = Map("A-1"-> Free, "A-2" -> Free)))
   }
 
   "can book some seats" in {
@@ -34,11 +30,7 @@ class VenueAggregateV2Spec() extends TestKit(ActorSystem("MySpec")) with Implici
     venue ! VenueAggregate.Initialize(seats = List("A-1", "A-2"))
     receiveN(1)
     venue ! VenueAggregate.Book(bookingId = "booking-1", seats = List("A-1", "A-2"))
-    expectMsg(VenueAggregate.Venue(
-      id = id,
-      seatsTaken = Map("A-1"-> Taken("booking-1"), "A-2" -> Taken("booking-1")),
-      bookings = Map()
-    ))
+    expectMsg(VenueAggregate.Venue(id = id, seatsTaken = Map("A-1"-> Taken("booking-1"), "A-2" -> Taken("booking-1"))))
   }
 
   "can unbook seats of a booking" in {
@@ -49,10 +41,6 @@ class VenueAggregateV2Spec() extends TestKit(ActorSystem("MySpec")) with Implici
     venue ! Book(bookingId = "booking-1", seats = List("A-1", "A-2"))
     receiveN(1)
     venue ! UnbookAll(bookingId = "booking-1")
-    expectMsg(VenueAggregate.Venue(
-      id = id,
-      seatsTaken = Map("A-1"-> Free, "A-2" -> Free),
-      bookings = Map()
-    ))
+    expectMsg(VenueAggregate.Venue(id = id, seatsTaken = Map("A-1"-> Free, "A-2" -> Free)))
   }
 }
