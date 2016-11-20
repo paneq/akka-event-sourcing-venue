@@ -1,7 +1,7 @@
 import java.util.UUID
 
-import akka.actor.{Actor, ActorSystem, Props}
-import akka.testkit.{ImplicitSender, TestActors, TestKit}
+import akka.actor.{ActorSystem, Props}
+import akka.testkit.{ImplicitSender, TestKit}
 import io.scalac.seed.domain.VenueAggregate
 import org.scalatest.WordSpecLike
 import org.scalatest.Matchers
