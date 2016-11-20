@@ -48,9 +48,7 @@ class VenueAggregate(id: String) extends PersistentActor with ActorLogging {
       case Uninitialized =>
         event match {
           case SeatsAdded(seats) =>
-            val seatsTaken = new scala.collection.mutable.HashMap[String, SeatState]
-            seats.foreach(s => seatsTaken(s) = Free)
-            state = Venue(id, collection.immutable.HashMap(seatsTaken.toSeq: _*))
+            state = Venue(id, seats.map(s => (s -> Free)).toMap)
         }
       case Venue(_, seatsTaken) =>
         event match{
